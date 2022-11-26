@@ -1,0 +1,6 @@
+bcrypt==4.0.1
+cryptography==38.0.3
+fastapi==0.87.0
+passlib==1.7.4
+python-jose==3.3.0
+uvicorn==0.13.4

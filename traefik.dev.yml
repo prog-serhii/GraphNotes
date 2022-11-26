@@ -1,0 +1,20 @@
+entryPoints:
+  web:
+    address: ":80"
+
+providers:
+  docker:
+    exposedByDefault: false
+
+log:
+  level: DEBUG
+  filePath: traefik.json.log
+  format: json
+
+accessLog:
+  filePath: access.json.log
+  format: json
+
+api:
+  insecure: true
+  dashboard: true

@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+
+  traefik:
+    image: traefik:v2.3
+    volumes:
+      - ./traefik.dev.yml:/etc/traefik/traefik.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "80:80"
+      - "8080:8080"
+    networks:
+      - traefik-public
+
+  auth-service:
+    build: ./auth-service
+    command: uvicorn main:app --host 0.0.0.0 --port 5000
+    volumes:
+      - ./auth-service/app:/app
+    expose:
+      - 5000
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.auth-service.rule=Host(`auth-service.localhost`)
+      - traefik.docker.network=traefik-public
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true
