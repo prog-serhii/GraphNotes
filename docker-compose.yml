@@ -1,32 +1,83 @@
-version: "3.8"
+version: '3.8'
 
 services:
 
   traefik:
-    image: traefik:v2.3
-    volumes:
-      - ./traefik.dev.yml:/etc/traefik/traefik.yml
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+    build: ./traefik
     ports:
-      - "80:80"
-      - "8080:8080"
+      - '80:80'
+      - '8080:8080'
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - traefik-public
+    labels:
+    - traefik.http.middlewares.api-forwardauth.forwardauth.address=http://auth-service:8000/auth
+    - traefik.http.middlewares.api-forwardauth.forwardauth.trustForwardHeader=true
+    - traefik.http.middlewares.api-forwardauth.forwardauth.authRequestHeaders=Cookie
+    - traefik.http.middlewares.api-forwardauth.forwardauth.authResponseHeaders=Authorization
 
   auth-service:
-    build: ./auth-service
-    command: uvicorn main:app --host 0.0.0.0 --port 5000
+    build: ./auth_service
+    command: bash -c 'while !</dev/tcp/auth-service-db/5432; do sleep 1; done; uvicorn main:app --host 0.0.0.0'
+    expose:
+      - 8000
+    environment:
+      - DATABASE_URL=postgres://postgres_user:postgress_password@auth-service-db:5432/auth
+      - SECRET_KEY=''
     volumes:
       - ./auth-service/app:/app
-    expose:
-      - 5000
+    networks:
+      - traefik-public
     labels:
       - traefik.enable=true
       - traefik.http.routers.auth-service.rule=Host(`auth-service.localhost`)
       - traefik.docker.network=traefik-public
-    networks:
-      - traefik-public
+    depends_on:
+      - traefik
+      - auth-service-db
+
+  auth-service-db:
+    image: postgres:13-alpine
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=postgres_user
+      - POSTGRES_PASSWORD=postgress_password
+      - POSTGRES_DB=auth
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+
+#  api-example:
+#    image: mettan-dev/api-example:latest
+#    restart: unless-stopped
+#    networks:
+#      - stack-network
+#    depends_on:
+#      - "reverse-proxy"
+#    labels:
+#    - traefik.http.routers.api-example.rule=Host(`api.demo.com`)
+#    - traefik.http.routers.api-example.middlewares=api-forwardauth@docker
+#    - traefik.http.services.api-example.loadbalancer.server.port=3001
+#    - traefik.docker.network=stack-network
+#
+#  spa-example:
+#    image: mettan-dev/spa-example:latest
+#    restart: unless-stopped
+#    networks:
+#      - stack-network
+#    depends_on:
+#      - "reverse-proxy"
+#    labels:
+#    - traefik.http.routers.spa-example.rule=Host(`demo.com`)
+#    - traefik.http.services.spa-example.loadbalancer.server.port=8080
+#    - traefik.docker.network=stack-network
 
 networks:
   traefik-public:
     external: true
+
+volumes:
+  postgres_data:
