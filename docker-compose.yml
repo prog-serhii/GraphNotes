@@ -7,47 +7,59 @@ services:
     ports:
       - '80:80'
       - '8080:8080'
-    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - traefik-public
-    labels:
-    - traefik.http.middlewares.api-forwardauth.forwardauth.address=http://auth-service:8000/auth
-    - traefik.http.middlewares.api-forwardauth.forwardauth.trustForwardHeader=true
-    - traefik.http.middlewares.api-forwardauth.forwardauth.authRequestHeaders=Cookie
-    - traefik.http.middlewares.api-forwardauth.forwardauth.authResponseHeaders=Authorization
 
-  auth-service:
-    build: ./auth_service
-    command: bash -c 'while !</dev/tcp/auth-service-db/5432; do sleep 1; done; uvicorn main:app --host 0.0.0.0'
-    expose:
-      - 8000
-    environment:
-      - DATABASE_URL=postgres://postgres_user:postgress_password@auth-service-db:5432/auth
-      - SECRET_KEY=''
+#  auth-service:
+#    build: ./auth_service
+#    command: bash -c 'while !</dev/tcp/auth-service-db/5432; do sleep 1; done; uvicorn main:app --host 0.0.0.0'
+#    expose:
+#      - 8000
+#    environment:
+#      - DATABASE_URL=postgres://postgres_user:postgress_password@auth-service-db:5432/auth
+#      - SECRET_KEY=''
+#    volumes:
+#      - ./auth-service/app:/app
+#    networks:
+#      - traefik-public
+#    labels:
+#      - traefik.enable=true
+#      - traefik.http.routers.auth-service.rule=Host(`auth-service.localhost`)
+#      - traefik.docker.network=traefik-public
+#    - traefik.http.middlewares.api-forwardauth.forwardauth.address=http://auth-service:8000/auth
+#    - traefik.http.middlewares.api-forwardauth.forwardauth.trustForwardHeader=true
+#    - traefik.http.middlewares.api-forwardauth.forwardauth.authRequestHeaders=Cookie
+#    - traefik.http.middlewares.api-forwardauth.forwardauth.authResponseHeaders=Authorization
+#    depends_on:
+#      - traefik
+#      - auth-service-db
+
+  frontend:
+    build: ./frontend
     volumes:
-      - ./auth-service/app:/app
-    networks:
-      - traefik-public
+      - './frontend:/app'
+      - '/app/node_modules'
     labels:
       - traefik.enable=true
-      - traefik.http.routers.auth-service.rule=Host(`auth-service.localhost`)
-      - traefik.docker.network=traefik-public
+      - traefik.http.routers.frontend.rule=PathPrefix(`/`)
+      - traefik.http.services.frontend.loadbalancer.server.port=8080
     depends_on:
       - traefik
-      - auth-service-db
+    networks:
+      - traefik-public
 
-  auth-service-db:
-    image: postgres:13-alpine
-    expose:
-      - 5432
-    environment:
-      - POSTGRES_USER=postgres_user
-      - POSTGRES_PASSWORD=postgress_password
-      - POSTGRES_DB=auth
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
+#  auth-service-db:
+#    image: postgres:13-alpine
+#    expose:
+#      - 5432
+#    environment:
+#      - POSTGRES_USER=postgres_user
+#      - POSTGRES_PASSWORD=postgress_password
+#      - POSTGRES_DB=auth
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data/
 
 
 #  api-example:
