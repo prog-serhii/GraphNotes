@@ -48,8 +48,6 @@ services:
       - NEO4J_USERNAME=neo4j
       - NEO4J_PASSWORD=neo4j-db-pass
       - NEO4J_DATABASE=neo4j
-    volumes:
-      - ./graph_service/app:/app
     depends_on:
       - neo4j-db
 
@@ -61,8 +59,6 @@ services:
 #    environment:
 #      - DATABASE_URL=postgres://postgres_user:postgress_password@auth-service-db:5432/auth
 #      - SECRET_KEY=''
-#    volumes:
-#      - ./auth_service/app:/app
 #    networks:
 #      - traefik-public
 #    labels:
