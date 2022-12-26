@@ -1,0 +1,2 @@
+npm install material-design-icons-iconfont -D
+npm install @fontawesome/fontawesome-free -D
