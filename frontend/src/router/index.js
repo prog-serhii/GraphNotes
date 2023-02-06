@@ -44,20 +44,21 @@ const router = createRouter({
     routes
 });
 
+// TODO: temporary
 // handle unauthorized access
-router.beforeEach((to, from, next) => {
-    const publicPages = ['/login', '/sign-up', '/'];
-    const authRequired = !publicPages.includes(to.path);
-    const loggedIn = localStorage.getItem('user');
+// router.beforeEach((to, from, next) => {
+//     const publicPages = ['/login', '/sign-up', '/'];
+//     const authRequired = !publicPages.includes(to.path);
+//     const loggedIn = localStorage.getItem('user');
 
-    // trying to access a restricted page + not logged in
-    // redirect to login page
-    if (authRequired && !loggedIn) {
-        next('/login');
-    } else {
-        next();
-    }
-});
+//     // trying to access a restricted page + not logged in
+//     // redirect to login page
+//     if (authRequired && !loggedIn) {
+//         next('/login');
+//     } else {
+//         next();
+//     }
+// });
 
 export default router;
 
