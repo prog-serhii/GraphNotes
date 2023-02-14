@@ -1,0 +1,110 @@
+openapi: 3.0.3
+
+info:
+  title: Tags Service - OpenAPI 3.0
+  version: 0.0.1
+
+paths:
+  /tags:
+    get:
+      summary: Get all tags
+      operationId: getAllTags
+    post:
+      summary: Create a new tag
+      operationId: createTag
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTagSchema'
+  
+  /tags/{tag_id}:
+    parameters:
+      - name: tag_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    put:
+      summary: Update the name of a tag
+      operationId: updateTag
+      responses:
+        '404':
+          $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a tag
+      operationId: deleteTag
+      responses:
+        '404':
+          $ref: '#/components/schemas/Error'
+
+  /tags/{tag_id}/graph:
+    parameters:
+      - name: tag_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get tgg relationships with other tags
+      operationId: getTagGraph
+      responses:
+        '404':
+          $ref: '#/components/schemas/Error'
+
+  /tags/{tag_id}/notes:
+    parameters:
+      - name: tag_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get all notes with this tag
+      operationId: getNotesWithTag
+      responses:
+        '404':
+          $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    TagSchema:
+      type: object
+      properties:
+        name:
+          type: string
+
+    GetTagSchema:
+      allOf:
+        - $ref: '#/components/schemas/TagSchema'
+        - type: object
+          properties:
+            created:
+              type: string
+              format: date-time
+            updated:
+              type: string
+              format: date-time
+
+    CreateTagSchema:
+      allOf:
+        - $ref: '#/components/schemas/TagSchema'
+    
+    UpdateTagSchema:
+      allOf:
+        - $ref: '#/components/schemas/TagSchema'
+    
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+        - detail
