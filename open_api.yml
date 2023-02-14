@@ -1,0 +1,140 @@
+openapi: 3.0.0
+
+paths:
+  /orders:
+    get:
+      operationId: getOrders
+      parameters:
+        - name: cancelled
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A JSON array of orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items: '#/components/schemas/GetOrderSchema'
+                required:
+                  - order
+    post:
+      operationId: createOrder
+  
+  /orders/{order_id}:
+    parameters:
+      - in: path
+        name: order_id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Returns the details of a specific order
+      operationId: getOrder
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetOrderSchema'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      operationId: updateOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderSchema'
+    delete:
+      operationId: deleteOrder
+  
+  /orders/{order_id}/pay:
+    post:
+      operationId: payOrder
+  
+  /orders/{order_id}/cancel:
+    post:
+      operationId: cancelOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderSchema'
+
+components:
+  schemas:
+
+    OrderItemSchema:
+      type: object
+      properties:
+        product:
+          type: string
+        size:
+          type: string
+          enum:
+            - small
+            - medium
+            - big
+        quantity:
+          type: integer
+          default: 1
+      required:
+        - product
+        - size
+
+    GetOrderItemSchema:
+      allOf:
+        - $ref: '#/components/schemas/OrderItemSchema'
+        - type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - created
+                - paid
+                - progress
+                - cancelled
+                - dispatched
+                - delivered
+            created:
+              type: string
+              format: date-time
+
+    CreateOrderSchema:
+      type: object
+      properties:
+        order:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemSchema'
+    
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+        - detail
+
+  responses:
+    NotFound:
+      description: The specified resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
