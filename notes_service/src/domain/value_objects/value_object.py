@@ -1,9 +1,4 @@
-import uuid
 from dataclasses import dataclass
-
-
-UUID = uuid
-UUID.v4 = uuid.uuid4
 
 
 @dataclass

@@ -9,6 +9,15 @@ paths:
     get:
       summary: Get all tags
       operationId: getAllTags
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/GetTagSchema'
     post:
       summary: Create a new tag
       operationId: createTag
@@ -30,16 +39,30 @@ paths:
     put:
       summary: Update the name of a tag
       operationId: updateTag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTagSchema'
       responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/GetTagSchema'
         '404':
-          $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/NotFound'
 
     delete:
       summary: Delete a tag
       operationId: deleteTag
       responses:
         '404':
-          $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/NotFound'
 
   /tags/{tag_id}/graph:
     parameters:
@@ -55,7 +78,7 @@ paths:
       operationId: getTagGraph
       responses:
         '404':
-          $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/NotFound'
 
   /tags/{tag_id}/notes:
     parameters:
@@ -70,8 +93,22 @@ paths:
       summary: Get all notes with this tag
       operationId: getNotesWithTag
       responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  notes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LightNoteSchema'
         '404':
-          $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/NotFound'
 
 components:
   schemas:
@@ -80,18 +117,27 @@ components:
       properties:
         name:
           type: string
+      required:
+        - name
 
     GetTagSchema:
       allOf:
         - $ref: '#/components/schemas/TagSchema'
         - type: object
           properties:
+            id:
+              type: string
+              format: uuid
             created:
               type: string
               format: date-time
             updated:
               type: string
               format: date-time
+          required:
+            - id
+            - created
+            - updated
 
     CreateTagSchema:
       allOf:
@@ -101,6 +147,21 @@ components:
       allOf:
         - $ref: '#/components/schemas/TagSchema'
     
+    LightNoteSchema:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        short_description:
+          type: string
+      required:
+        - id
+        - title
+        - short_description
+
     Error:
       type: object
       properties:
@@ -108,3 +169,11 @@ components:
           type: string
       required:
         - detail
+
+  responses:
+    NotFound:
+      description: The specified resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
